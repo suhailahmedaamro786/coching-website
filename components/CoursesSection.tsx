@@ -3,24 +3,32 @@ import CourseGrid from './CourseGrid';
 import type { Course } from '@/lib/types';
 
 /**
- * Server component that fetches published courses joined with their teacher,
- * then renders the interactive catalog grid.
+ * Server component that fetches active/published courses joined with their
+ * teacher, then renders the interactive catalog grid.
  */
 export default async function CoursesSection() {
   let courses: Course[] = [];
 
   try {
     const supabase = createClient();
+
     const { data, error } = await supabase
       .from('courses')
       .select('*, teachers(*)')
-      .eq('status', 'published')
+      .or('status.eq.published,status.eq.active')
       .order('created_at');
 
     if (error) {
       console.error('[CoursesSection] Supabase query failed:', error.message);
     } else {
-      courses = (data ?? []) as unknown as Course[];
+      // Normalize image field so the UI can render from either
+      // `thumbnail_url` or `image_url` depending on what exists in the DB.
+      const normalized = (data ?? []).map((c: any) => ({
+        ...c,
+        thumbnail_url: c.thumbnail_url ?? c.image_url ?? null,
+      }));
+
+      courses = normalized as unknown as Course[];
     }
   } catch (err) {
     // Gracefully degrade to an empty catalog rather than crashing the page.

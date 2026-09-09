@@ -32,10 +32,10 @@ export default function CourseGrid({ courses }: { courses: Course[] }) {
           >
             {/* Thumbnail */}
             <div className="relative aspect-[16/9] overflow-hidden">
-              {course.thumbnail_url ? (
+              {(course.thumbnail_url || (course as any).image_url) ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={course.thumbnail_url}
+                  src={course.thumbnail_url || (course as any).image_url}
                   alt={course.title ?? 'Course'}
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
