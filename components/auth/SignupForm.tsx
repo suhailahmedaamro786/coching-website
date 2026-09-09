@@ -54,7 +54,7 @@ export default function SignupForm() {
 
     if (data.session) {
       toast.success('Account created!');
-      router.push('/dashboard');
+      router.push('/');
       router.refresh();
     } else {
       // Email confirmation required

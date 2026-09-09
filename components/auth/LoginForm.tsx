@@ -33,7 +33,7 @@ export default function LoginForm() {
       return;
     }
     toast.success('Welcome back!');
-    router.push('/dashboard');
+    router.push('/');
     router.refresh();
   }
 

@@ -3,10 +3,10 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
 /**
  * Middleware: refreshes the Supabase session cookies on every matched
- * request (keeping the user signed in) and enforces route protection.
+ * request (keeping the user signed in).
  *
- * Protected:  /dashboard/*      → redirect to /login if unauthenticated
- * Auth pages: /login, /signup   → redirect to /dashboard if already signed in
+ * Auth pages: /login, /signup   → redirect to / if already signed in
+ * (No protected /dashboard routes remain — admin lives in the Streamlit app.)
  */
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -15,7 +15,7 @@ export async function middleware(request: NextRequest) {
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   // If env vars are missing, skip auth handling rather than crashing every
-  // request on /dashboard, /login and /signup.
+  // request on /login and /signup.
   if (!url || !anonKey) {
     console.error(
       '[middleware] Missing NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY — skipping auth.'
@@ -53,18 +53,10 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Protect the student portal.
-  if (!user && pathname.startsWith('/dashboard')) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    url.searchParams.set('next', pathname);
-    return NextResponse.redirect(url);
-  }
-
   // Send already-authenticated users away from the auth pages.
   if (user && (pathname === '/login' || pathname === '/signup')) {
     const url = request.nextUrl.clone();
-    url.pathname = '/dashboard';
+    url.pathname = '/';
     return NextResponse.redirect(url);
   }
 
@@ -72,5 +64,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/login', '/signup'],
+  matcher: ['/login', '/signup'],
 };

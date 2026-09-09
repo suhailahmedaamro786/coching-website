@@ -11,7 +11,6 @@ const NAV_LINKS = [
   { href: '/', label: 'Home' },
   { href: '/courses', label: 'Courses' },
   { href: '/contact', label: 'Support' },
-  { href: '/dashboard', label: 'Dashboard' },
 ];
 
 /**
