@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+/* Base dark theme */
+body {
+  @apply bg-slate-950 text-slate-100 antialiased;
+  background-image: radial-gradient(ellipse at top, rgba(99, 102, 241, 0.14), transparent 60%);
+  background-attachment: fixed;
+}
+
+/* Glassmorphism surface */
+.glass {
+  @apply bg-slate-900/50 backdrop-blur-xl border border-white/10;
+}
+
+/* App content max-width wrapper */
+.app-container {
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+}
+
+/* Selection + scrollbar polish */
+::selection {
+  @apply bg-indigo-500/40 text-white;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-700 rounded-full;
+}
