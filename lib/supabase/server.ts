@@ -6,12 +6,32 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
+/**
+ * Resolve Supabase env vars with a descriptive error instead of passing
+ * `undefined` into createServerClient (which throws a cryptic runtime crash
+ * when the vars are missing from the host environment, e.g. Vercel).
+ */
+export function getSupabaseEnv() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !anonKey) {
+    throw new Error(
+      'Supabase server client: missing environment variables. ' +
+        'Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY ' +
+        '(Vercel: Project Settings → Environment Variables; see .env.example).'
+    );
+  }
+  return { url, anonKey };
+}
+
 export function createClient() {
   const cookieStore = cookies();
+  const { url, anonKey } = getSupabaseEnv();
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    anonKey,
     {
       cookies: {
         getAll() {

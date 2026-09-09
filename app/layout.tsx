@@ -6,6 +6,11 @@ import Footer from '@/components/Footer';
 import TransitionProvider from '@/components/TransitionProvider';
 import Providers from '@/components/Providers';
 
+// The layout reads cookies (via the Supabase SSR client) — render it on every
+// request rather than letting Next static-prerender it (which throws
+// DYNAMIC_SERVER_USAGE for un-awaitable `cookies()` usage).
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: {
     default: 'LearnHub',
@@ -16,17 +21,28 @@ export const metadata: Metadata = {
 
 /** Fetch website branding from the `system_settings` table. */
 async function getBranding() {
-  const supabase = createClient();
-  const { data } = await supabase
-    .from('system_settings')
-    .select('institute_name, footer_text')
-    .limit(1)
-    .maybeSingle();
+  try {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('system_settings')
+      .select('institute_name, footer_text')
+      .limit(1)
+      .maybeSingle();
 
-  return {
-    instituteName: data?.institute_name || 'LearnHub',
-    footerText: data?.footer_text || '© LearnHub. All rights reserved.',
-  };
+    if (error) {
+      console.error('[getBranding] Supabase query failed:', error.message);
+      return { instituteName: 'LearnHub', footerText: '© LearnHub. All rights reserved.' };
+    }
+
+    return {
+      instituteName: data?.institute_name || 'LearnHub',
+      footerText: data?.footer_text || '© LearnHub. All rights reserved.',
+    };
+  } catch (err) {
+    // Never let a branding fetch crash the whole app — fall back to defaults.
+    console.error('[getBranding] unexpected error:', err);
+    return { instituteName: 'LearnHub', footerText: '© LearnHub. All rights reserved.' };
+  }
 }
 
 export default async function RootLayout({

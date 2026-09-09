@@ -8,10 +8,24 @@ import type { Teacher } from '@/lib/types';
  * a skeleton shows while the query resolves.
  */
 export default async function TeamSection() {
-  const supabase = createClient();
-  const { data } = await supabase.from('teachers').select('*').order('created_at');
+  let teachers: Teacher[] = [];
 
-  const teachers = (data ?? []) as unknown as Teacher[];
+  try {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('teachers')
+      .select('*')
+      .order('created_at');
+
+    if (error) {
+      console.error('[TeamSection] Supabase query failed:', error.message);
+    } else {
+      teachers = (data ?? []) as unknown as Teacher[];
+    }
+  } catch (err) {
+    // Gracefully degrade to an empty team rather than crashing the page.
+    console.error('[TeamSection] unexpected error:', err);
+  }
 
   return (
     <section className="app-container py-16">

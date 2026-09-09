@@ -7,14 +7,25 @@ import type { Course } from '@/lib/types';
  * then renders the interactive catalog grid.
  */
 export default async function CoursesSection() {
-  const supabase = createClient();
-  const { data } = await supabase
-    .from('courses')
-    .select('*, teachers(*)')
-    .eq('status', 'published')
-    .order('created_at');
+  let courses: Course[] = [];
 
-  const courses = (data ?? []) as unknown as Course[];
+  try {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('courses')
+      .select('*, teachers(*)')
+      .eq('status', 'published')
+      .order('created_at');
+
+    if (error) {
+      console.error('[CoursesSection] Supabase query failed:', error.message);
+    } else {
+      courses = (data ?? []) as unknown as Course[];
+    }
+  } catch (err) {
+    // Gracefully degrade to an empty catalog rather than crashing the page.
+    console.error('[CoursesSection] unexpected error:', err);
+  }
 
   return (
     <section className="app-container py-12">

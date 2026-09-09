@@ -11,9 +11,21 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
 
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  // If env vars are missing, skip auth handling rather than crashing every
+  // request on /dashboard, /login and /signup.
+  if (!url || !anonKey) {
+    console.error(
+      '[middleware] Missing NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY — skipping auth.'
+    );
+    return response;
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    anonKey,
     {
       cookies: {
         getAll() {
@@ -30,9 +42,14 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user: { id: string } | null = null;
+  try {
+    const res = await supabase.auth.getUser();
+    user = res.data.user;
+  } catch (err) {
+    // Treat as unauthenticated and let the redirects below run — never 500.
+    console.error('[middleware] auth.getUser() failed:', err);
+  }
 
   const { pathname } = request.nextUrl;
 
