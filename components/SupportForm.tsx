@@ -6,20 +6,25 @@ import { Send } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useToast } from '@/components/ui/toast';
 
-/** Glassmorphism support / complaint form → support_tickets (status='Open'). */
+/** Glassmorphism support form → public.support_messages (status='Open'). */
 export default function SupportForm() {
   const toast = useToast();
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({ email: '', subject: '', message: '' });
+  const [form, setForm] = useState({ name: '', email: '', message: '' });
+  // Avoid embedding user-entered content in outbound links.
+  const [whatsAppMessage] = useState('Hello! I have a question about your courses.');
+
+  // NOTE: This is a generic template (not user-entered).
+
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
 
     const supabase = createClient();
     setSubmitting(true);
-    const { error } = await supabase.from('support_tickets').insert({
+    const { error } = await supabase.from('support_messages').insert({
+      name: form.name.trim(),
       email: form.email.trim(),
-      subject: form.subject.trim(),
       message: form.message.trim(),
       status: 'Open',
     });
@@ -32,7 +37,7 @@ export default function SupportForm() {
     }
 
     toast.success('Message sent! We will get back to you soon.');
-    setForm({ email: '', subject: '', message: '' });
+    setForm({ name: '', email: '', message: '' });
   }
 
   const inputClass =
@@ -49,11 +54,27 @@ export default function SupportForm() {
       <div className="pointer-events-none absolute -top-20 right-0 h-40 w-64 rounded-full bg-sky-500/15 blur-3xl" />
 
       <h2 className="text-xl font-bold text-white">Contact support</h2>
-      <p className="mb-6 mt-1 text-sm text-slate-400">
-        Have a question or complaint? We typically reply within 24 hours.
+      <p className="mb-4 mt-1 text-sm text-slate-400">
+        Have a question? We typically reply within 24 hours.
       </p>
 
+
       <div className="space-y-4">
+        <div>
+          <label htmlFor="sp-name" className="mb-1 block text-sm font-medium text-slate-300">
+            Name
+          </label>
+          <input
+            id="sp-name"
+            type="text"
+            required
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            className={inputClass}
+            placeholder="Your name"
+          />
+        </div>
+
         <div>
           <label htmlFor="sp-email" className="mb-1 block text-sm font-medium text-slate-300">
             Email
@@ -66,21 +87,6 @@ export default function SupportForm() {
             onChange={(e) => setForm({ ...form, email: e.target.value })}
             className={inputClass}
             placeholder="you@example.com"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="sp-subject" className="mb-1 block text-sm font-medium text-slate-300">
-            Subject
-          </label>
-          <input
-            id="sp-subject"
-            type="text"
-            required
-            value={form.subject}
-            onChange={(e) => setForm({ ...form, subject: e.target.value })}
-            className={inputClass}
-            placeholder="How can we help?"
           />
         </div>
 

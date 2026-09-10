@@ -9,8 +9,6 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export default function CoursesPage() {
-
-export default function CoursesPage() {
   return (
     <Suspense fallback={<CourseGridSkeleton />}>
       <CoursesSection />
